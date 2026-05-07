@@ -11,7 +11,7 @@ public class RaftNode {
     List<Log> logs;
     List<RaftNode> nodes = new ArrayList<>();
     Integer votedFor = null;
-    Set<Integer> votesReceived;
+    Set<VoteResponse> votesReceived;
     int currentTerm;
     RaftNode currentLeader;
 
@@ -43,9 +43,28 @@ public class RaftNode {
         this.votedFor = this.nodeID;
         currentTerm = this.currentTerm + 1;
         int loglastTerm = logs.isEmpty() ? 0 : logs.getLast().term;
-        votesReceived.add(this.nodeID);
+        votesReceived.add(new VoteResponse(true, this.nodeID, this.currentTerm));
         VoteRequest request = new VoteRequest(logs.size(), currentTerm, this.nodeID, loglastTerm);
-        for(RaftNode node : nodes ) node.recieveVoteRequest(request);
+        for(RaftNode node : nodes ) if(node.nodeID != this.nodeID) votesReceived.add(node.recieveVoteRequest(request));
+        boolean result = checkIfLeader(votesReceived);
+        if(result){
+            this.currentRole = Role.LEADER;
+//            publish the data to all the nodes
+        }
+
+    }
+
+    private boolean checkIfLeader( Set<VoteResponse> votesReceived){
+        int quorum = nodes.size() / 2 + 1;
+        int votesCount = 0;
+        for(VoteResponse votes : votesReceived){
+            if(votes.currentTerm > this.currentTerm){
+                this.currentTerm = votes.currentTerm;
+                this.currentRole = Role.FOLLOWER;
+                return false;
+            }else if(votes.voted) votesCount += 1;
+        }
+        return votesCount >= quorum;
     }
 
 //    stage 2
