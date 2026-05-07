@@ -2,13 +2,13 @@ public class VoteRequest {
     int currentLogLength;
     int currentTerm;
     int candidateID;
-    int lastTerm;
+    int logLastTerm;
 
-    public VoteRequest(int currentLogLength, int currentTerm, int candidateID, int lastTerm) {
+    public VoteRequest(int currentLogLength, int currentTerm, int candidateID, int logLastTerm) {
         this.currentLogLength = currentLogLength;
         this.currentTerm = currentTerm;
         this.candidateID = candidateID;
-        this.lastTerm = lastTerm;
+        this.logLastTerm = logLastTerm;
     }
 
     public int getCurrentLogLength() {
@@ -24,7 +24,7 @@ public class VoteRequest {
     }
 
     public int getLastTerm() {
-        return lastTerm;
+        return logLastTerm;
     }
 
     public void setCurrentLogLength(int currentLogLength) {
@@ -39,7 +39,7 @@ public class VoteRequest {
         this.candidateID = candidateID;
     }
 
-    public void setLastTerm(int lastTerm) {
-        this.lastTerm = lastTerm;
+    public void setLastTerm(int logLastTerm) {
+        this.logLastTerm = logLastTerm;
     }
 }

@@ -9,7 +9,7 @@ public class Log {
         this.term = term;
     }
 
-    public int getMessageID() {''
+    public int getMessageID() {
         return messageID;
     }
 

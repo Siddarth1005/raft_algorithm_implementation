@@ -10,7 +10,7 @@ public class RaftNode {
     Role currentRole;
     List<Log> logs;
     List<RaftNode> nodes = new ArrayList<>();
-    RaftNode votedFor = null;
+    Integer votedFor = null;
     Set<Integer> votesReceived;
     int currentTerm;
     RaftNode currentLeader;
@@ -26,7 +26,7 @@ public class RaftNode {
         this.currentLeader = null;
     }
 
-    public void crashRecovery(int currentTerm, RaftNode votedFor, List<Log> logs) {
+    public void crashRecovery(int currentTerm, Integer votedFor, List<Log> logs) {
         // restore persistent state
         this.currentTerm = currentTerm;
         this.votedFor = votedFor;
@@ -40,17 +40,33 @@ public class RaftNode {
 //    stage 1
     public void becomeCandidate(){
         currentRole = Role.CANDIDATE;
-        this.votedFor = this;
+        this.votedFor = this.nodeID;
         currentTerm = this.currentTerm + 1;
-        int lastTerm = logs.isEmpty() ? 0 : logs.getLast().term;
+        int loglastTerm = logs.isEmpty() ? 0 : logs.getLast().term;
         votesReceived.add(this.nodeID);
-        VoteRequest request = new VoteRequest(logs.size(), currentTerm, this.nodeID, lastTerm);
+        VoteRequest request = new VoteRequest(logs.size(), currentTerm, this.nodeID, loglastTerm);
         for(RaftNode node : nodes ) node.recieveVoteRequest(request);
     }
 
 //    stage 2
-    public void  recieveVoteRequest(VoteRequest voteRequest){
-        return;
+    public VoteResponse recieveVoteRequest(VoteRequest voteRequest){
+       if(voteRequest.currentTerm > this.currentTerm){
+           this.votedFor = null;
+           this.currentRole = Role.FOLLOWER;
+           this.currentTerm = voteRequest.currentTerm;
+       }
+       int logLength = 0;
+       if(!this.logs.isEmpty()) logLength =  this.logs.size();
+       int logLastTerm = this.logs.isEmpty() ? 0 : this.logs.getLast().term;
+
+       boolean logOK = voteRequest.logLastTerm > logLastTerm ||
+               (voteRequest.logLastTerm == logLastTerm && voteRequest.currentLogLength >= logLength);
+
+        if( logOK && voteRequest.currentTerm == this.currentTerm && (this.votedFor == null || this.votedFor == voteRequest.candidateID)){
+           this.votedFor = voteRequest.candidateID;
+           return new VoteResponse(true, this.nodeID, this.currentTerm);
+       }
+       return new VoteResponse(false, this.nodeID, this.currentTerm);
     }
 
 }
