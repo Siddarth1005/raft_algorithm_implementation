@@ -195,10 +195,16 @@ public class RaftNode {
                     for (int len = 1; len <= logs.size(); len++) {
                         int acks = 0;
                         for (RaftNode node : nodes) {
-                            if (ackLength.getOrDefault(node.nodeID, 0) >= len) acks++;
+                            if (node.ackLength.getOrDefault(node.nodeID, 0) >= len) acks++;
                         }
                         if (acks >= (nodes.size() / 2 + 1)) maxReady = len;
                     }
+
+                    System.out.println("ackCounter: " + ackCounter +
+                            " quorum needed: " + (nodes.size() / 2 + 1) +
+                            " logs.getLast().term: " + logs.getLast().term +
+                            " currentTerm: " + this.currentTerm);
+
 
                     if (maxReady > commitLength) {
                         // deliver committed entries to application
@@ -207,6 +213,11 @@ public class RaftNode {
                                     logs.get(i).getMessage() + " from term " + logs.get(i).getTerm());
                         }
                         this.commitLength = maxReady;
+
+                        for (RaftNode node : this.nodes) {
+                            if (node.nodeID == this.nodeID) continue;
+                            node.replicateLogs(logs.size(), logs.getLast().getTerm(), new ArrayList<>(), this.commitLength);
+                        }
                     }
                 }
 
