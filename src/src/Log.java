@@ -1,20 +1,18 @@
 public class Log {
-    int messageID;
-    String message;
+    Message message;
     int term;
 
-    public Log(int messageID, String message, int term) {
-        this.messageID = messageID;
+    public Log(Message message, Integer term) {
         this.message = message;
         this.term = term;
     }
 
     public int getMessageID() {
-        return messageID;
+        return this.message.messageID;
     }
 
     public String getMessage() {
-        return message;
+        return this.message.message;
     }
 
     public int getTerm() {
@@ -26,10 +24,10 @@ public class Log {
     }
 
     public void setMessage(String message) {
-        this.message = message;
+        this.message.message = message;
     }
 
     public void setMessageID(int messageID) {
-        this.messageID = messageID;
+        this.message.messageID = messageID;
     }
 }
